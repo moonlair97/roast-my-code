@@ -1,6 +1,6 @@
 module.exports = async function handler(req, res) {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return res.status(500).json({ error: 'API key not found. Value: ' + typeof process.env.ANTHROPIC_API_KEY });
+  if (!process.env.GROQ_API_KEY) {
+    return res.status(500).json({ error: 'API key not found. Value: ' + typeof process.env.GROQ_API_KEY });
   }
 
   const { code, lang, intensity } = req.body;
@@ -25,18 +25,19 @@ Keep the total response under 300 words.`;
   const userPrompt = `${langNote}\n\nHere's the code:\n\n\`\`\`\n${code.substring(0, 3000)}\n\`\`\`\n\nRoast it.`;
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01'
+        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'llama-3.3-70b-versatile',
         max_tokens: 1000,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userPrompt }]
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ]
       })
     });
 
@@ -46,7 +47,7 @@ Keep the total response under 300 words.`;
       return res.status(response.status).json({ error: data.error?.message || 'API error' });
     }
 
-    const roast = data.content?.[0]?.text || 'No response received.';
+    const roast = data.choices?.[0]?.message?.content || 'No response received.';
     return res.status(200).json({ roast });
   } catch (err) {
     return res.status(500).json({ error: err.message });
