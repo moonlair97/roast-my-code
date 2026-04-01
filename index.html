@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Roast My Code</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0e0e0e;
+      --bg2: #1a1a1a;
+      --bg3: #242424;
+      --border: rgba(255,255,255,0.1);
+      --border2: rgba(255,255,255,0.18);
+      --text: #f0ede8;
+      --text2: #9a9690;
+      --text3: #5a5855;
+      --accent: #D85A30;
+      --accent-dark: #993C1D;
+      --accent-light: #F0997B;
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    body {
+      font-family: 'Syne', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 3rem 1rem 5rem;
+    }
+
+    .container { width: 100%; max-width: 720px; }
+
+    header { margin-bottom: 2.5rem; }
+    h1 {
+      font-size: clamp(36px, 6vw, 56px);
+      font-weight: 800;
+      letter-spacing: -2px;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    h1 span { color: var(--accent); }
+    .subtitle { font-size: 15px; color: var(--text2); line-height: 1.5; }
+
+    .editor-wrap { margin-bottom: 1rem; }
+    textarea {
+      width: 100%;
+      min-height: 220px;
+      resize: vertical;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      padding: 1rem 1.25rem;
+      border-radius: var(--radius);
+      border: 1.5px solid var(--border);
+      background: var(--bg2);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    textarea:focus { border-color: var(--accent); }
+    textarea::placeholder { color: var(--text3); }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 1.25rem;
+    }
+
+    select {
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      border: 0.5px solid var(--border);
+      background: var(--bg2);
+      color: var(--text);
+      cursor: pointer;
+      outline: none;
+    }
+    select:focus { border-color: var(--accent); }
+
+    .intensity-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text2);
+    }
+    .pills { display: flex; gap: 4px; }
+    .pill {
+      padding: 6px 12px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 500;
+      border: 0.5px solid var(--border);
+      cursor: pointer;
+      background: transparent;
+      color: var(--text2);
+      transition: all 0.15s;
+      font-family: 'Syne', sans-serif;
+    }
+    .pill:hover { border-color: var(--accent-light); color: var(--accent-light); }
+    .pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    .roast-btn {
+      margin-left: auto;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 10px 22px;
+      border-radius: var(--radius-sm);
+      border: none;
+      cursor: pointer;
+      background: var(--accent);
+      color: #fff;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .roast-btn:hover { background: var(--accent-dark); }
+    .roast-btn:active { transform: scale(0.97); }
+    .roast-btn:disabled { background: var(--bg3); color: var(--text3); cursor: not-allowed; }
+
+    .output { border-radius: var(--radius); overflow: hidden; border: 1.5px solid #993C1D; }
+    .output-header {
+      padding: 10px 16px;
+      background: #1a0c07;
+      border-bottom: 1px solid #993C1D;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .output-label { font-size: 11px; font-weight: 700; color: var(--accent-light); letter-spacing: 1px; text-transform: uppercase; }
+    .output-body {
+      padding: 1.5rem;
+      background: #130a06;
+      font-size: 15px;
+      line-height: 1.8;
+      color: #e8ddd7;
+    }
+    .output-body p { margin-bottom: 0.85rem; }
+    .output-body p:last-child { margin-bottom: 0; }
+
+    .loading {
+      padding: 1.5rem;
+      background: #130a06;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .dots span {
+      display: inline-block;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      margin: 0 2px;
+      animation: bounce 1.2s infinite;
+    }
+    .dots span:nth-child(2) { animation-delay: 0.2s; }
+    .dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce {
+      0%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-8px); }
+    }
+    .loading-text { font-size: 14px; color: var(--text2); font-style: italic; }
+
+    .error {
+      padding: 1rem 1.25rem;
+      background: #1f0808;
+      color: #f09595;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      border: 0.5px solid #a32d2d;
+      margin-top: 0.75rem;
+    }
+
+    footer {
+      margin-top: 4rem;
+      font-size: 12px;
+      color: var(--text3);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Roast My <span>Code</span></h1>
+      <p class="subtitle">Paste your code. Brace yourself.<br>No feelings were considered in the making of this app.</p>
+    </header>
+
+    <div class="editor-wrap">
+      <textarea id="codeInput" placeholder="// paste your code here...&#10;// all sins will be judged equally" spellcheck="false"></textarea>
+    </div>
+
+    <div class="controls">
+      <select id="langSelect">
+        <option value="">Auto-detect language</option>
+        <option value="JavaScript">JavaScript</option>
+        <option value="Python">Python</option>
+        <option value="TypeScript">TypeScript</option>
+        <option value="Java">Java</option>
+        <option value="C++">C++</option>
+        <option value="C#">C#</option>
+        <option value="Go">Go</option>
+        <option value="Rust">Rust</option>
+        <option value="PHP">PHP</option>
+        <option value="Ruby">Ruby</option>
+        <option value="SQL">SQL</option>
+        <option value="HTML/CSS">HTML/CSS</option>
+        <option value="Bash">Bash</option>
+      </select>
+
+      <div class="intensity-wrap">
+        <span>Heat:</span>
+        <div class="pills">
+          <button class="pill" data-level="mild">mild</button>
+          <button class="pill active" data-level="medium">medium</button>
+          <button class="pill" data-level="savage">savage</button>
+        </div>
+      </div>
+
+      <button class="roast-btn" id="roastBtn">Roast me 🔥</button>
+    </div>
+
+    <div id="output"></div>
+
+    <footer>Powered by Claude &mdash; handle your API key with care</footer>
+  </div>
+
+  <script>
+    let intensity = 'medium';
+
+    document.querySelectorAll('.pill').forEach(p => {
+      p.addEventListener('click', () => {
+        document.querySelectorAll('.pill').forEach(x => x.classList.remove('active'));
+        p.classList.add('active');
+        intensity = p.dataset.level;
+      });
+    });
+
+    document.getElementById('roastBtn').addEventListener('click', roastCode);
+
+    const loadingTexts = [
+      "Counting the nested ternaries...",
+      "Checking if var is still being used...",
+      "Calculating the cyclomatic complexity...",
+      "Judging your naming conventions...",
+      "Wondering who approved this PR...",
+      "Consulting the ancient texts of Stack Overflow...",
+      "Estimating the technical debt in years..."
+    ];
+
+    async function roastCode() {
+      const code = document.getElementById('codeInput').value.trim();
+      const lang = document.getElementById('langSelect').value;
+      const btn = document.getElementById('roastBtn');
+      const out = document.getElementById('output');
+
+      if (!code) {
+        out.innerHTML = '<div class="error">There is no code here. I cannot roast thin air. Please paste something.</div>';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Roasting...';
+
+      out.innerHTML = `
+        <div class="output">
+          <div class="output-header">
+            <div class="output-label">🔥 The Roast</div>
+          </div>
+          <div class="loading">
+            <div class="dots"><span></span><span></span><span></span></div>
+            <div class="loading-text" id="loadingText">${loadingTexts[0]}</div>
+          </div>
+        </div>`;
+
+      let li = 0;
+      const loadingInterval = setInterval(() => {
+        li = (li + 1) % loadingTexts.length;
+        const el = document.getElementById('loadingText');
+        if (el) el.textContent = loadingTexts[li];
+      }, 1800);
+
+      try {
+        const response = await fetch('/api/roast', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, lang, intensity })
+        });
+
+        clearInterval(loadingInterval);
+        const data = await response.json();
+
+        if (!response.ok) throw new Error(data.error || 'Something went wrong');
+
+        const paragraphs = data.roast.trim().split(/\n\n+/).map(p => `<p>${p.trim()}</p>`).join('');
+        out.innerHTML = `
+          <div class="output">
+            <div class="output-header">
+              <div class="output-label">🔥 The Roast</div>
+            </div>
+            <div class="output-body">${paragraphs}</div>
+          </div>`;
+      } catch (err) {
+        clearInterval(loadingInterval);
+        out.innerHTML = `<div class="error">Failed to connect to the roast engine. Your code lives to see another day.<br>${err.message}</div>`;
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Roast me 🔥';
+    }
+  </script>
+</body>
+</html>
